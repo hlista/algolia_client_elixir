@@ -1,18 +1,27 @@
 defmodule AlgoliaClientElixir do
   @moduledoc """
-  Documentation for `AlgoliaClientElixir`.
-  """
+  AlgoliaClientElixir is a simple algolia client using Finch for Http requests
 
-  @doc """
-  Hello world.
+  Algolia.Index is the main module
 
-  ## Examples
+  ### Config
+  Set the following in your applications config.exs
+  ```elixir
+  config :algolia,
+    api_key: <YOUR_ALGOLIA_API_KEY>,
+    application_id: <YOUR_ALGOLIA_APPLICATION_ID>
+  ```
+  
+  ### Index
+  Initialize an index
+  ```elixir
+  Algolia.Index.init_index("index_name")
+  ```
 
-      iex> AlgoliaClientElixir.hello()
-      :world
-
-  """
-  def hello do
-    :world
-  end
+  Pass index into an index operation
+  ```elixir
+  "index_name"
+  |> Algolia.Index.init_index()
+  |> Algolia.Index.set_settings(settings)
+  ```
 end

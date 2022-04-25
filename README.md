@@ -1,21 +1,36 @@
 # AlgoliaClientElixir
 
-**TODO: Add description**
+AlgoliaClientElixir is a simple algolia client using Finch for Http requests
+
+Algolia.Index is the main module
 
 ## Installation
-
-If [available in Hex](https://hex.pm/docs/publish), the package can be installed
-by adding `algolia_client_elixir` to your list of dependencies in `mix.exs`:
 
 ```elixir
 def deps do
   [
-    {:algolia_client_elixir, "~> 0.1.0"}
+    {:algolia_client_elixir, github: "hlista/algolia_client_elixir", branch: "main"}
   ]
 end
 ```
 
-Documentation can be generated with [ExDoc](https://github.com/elixir-lang/ex_doc)
-and published on [HexDocs](https://hexdocs.pm). Once published, the docs can
-be found at <https://hexdocs.pm/algolia_client_elixir>.
+### Config
+Set the following in your applications config.exs
+```elixir
+config :algolia,
+  api_key: <YOUR_ALGOLIA_API_KEY>,
+  application_id: <YOUR_ALGOLIA_APPLICATION_ID>
+```
+  
+### Index
+Initialize an index
+```elixir
+Algolia.Index.init_index("index_name")
+```
 
+Pass index into an index operation
+```elixir
+"index_name"
+|> Algolia.Index.init_index()
+|> Algolia.Index.set_settings(settings)
+```
