@@ -27,13 +27,13 @@ defmodule Algolia.Index do
   def add_object(%Algolia.Index{name: name}, object, nil, request_options) do
     name
     |> Protocol.index_uri()
-    |> Client.post(object, :write, request_options)
+    |> Client.post(Jason.encode!(object), :write, request_options)
   end
 
   def add_object(%Algolia.Index{name: name}, object, object_id, request_options) do
     name
     |> Protocol.object_uri(object_id)
-    |> Client.put(object, :write, request_options)
+    |> Client.put(Jason.encode!(object), :write, request_options)
   end
 
   def add_objects(%Algolia.Index{name: _} = index, objects, request_options \\ %{}) do
@@ -64,7 +64,7 @@ defmodule Algolia.Index do
         "objectID" => object_id
       }
     end)
-    Client.post(Protocol.objects_uri, %{ requests: requests }, :read, request_options)["results"]
+    Client.post(Protocol.objects_uri, Jason.encode!(%{ requests: requests }), :read, request_options)["results"]
   end
 
   def get_objects(%Algolia.Index{name: name}, object_ids, attributes_to_retrieve, request_options) do
@@ -76,13 +76,13 @@ defmodule Algolia.Index do
         "attributesToRetrieve" => attributes_to_retrieve
       }
     end)
-    Client.post(Protocol.objects_uri, %{ requests: requests }, :read, request_options)["results"]
+    Client.post(Protocol.objects_uri, Jason.encode!(%{ requests: requests }), :read, request_options)["results"]
   end
 
   def save_object(%Algolia.Index{name: name}, object, request_options \\ %{}) do
     name
     |> Protocol.object_uri(object["objectID"])
-    |> Client.put(object, :write, request_options)
+    |> Client.put(Jason.encode!(object), :write, request_options)
   end
 
   def save_objects(%Algolia.Index{name: _} = index, objects, request_options \\ %{}) do
@@ -102,7 +102,7 @@ defmodule Algolia.Index do
   def partial_update_object(%Algolia.Index{name: name}, object, create_if_not_exits \\ true, request_options \\ %{}) do
     name
     |> Protocol.partial_object_uri(object["objectID"], create_if_not_exits)
-    |> Client.post(object, :write, request_options)
+    |> Client.post(Jason.encode!(object), :write, request_options)
   end
 
   def copy_index(src_index, dst_index, scope \\ nil, request_options \\ %{})
@@ -111,19 +111,19 @@ defmodule Algolia.Index do
     request = %{ "operation" => "copy", "destination" => dst_index }
     src_index
     |> Protocol.index_operation_uri()
-    |> Client.post(request, :write, request_options)
+    |> Client.post(Jason.encode!(request), :write, request_options)
   end
 
   def copy_index(%Algolia.Index{name: src_index}, %Algolia.Index{name: dst_index}, scope, request_options) do
     request = %{ "operation" => "copy", "destination" => dst_index, "scope" => scope }
     src_index
     |> Protocol.index_operation_uri()
-    |> Client.post(request, :write, request_options)
+    |> Client.post(Jason.encode!(request), :write, request_options)
   end
 
   def copy_index!(%Algolia.Index{name: _} = src_index, %Algolia.Index{name: dst_index_name} = dst_index, scope \\ nil, request_options \\ %{}) do
     with {:ok, response} <- copy_index(src_index, dst_index, scope, request_options) do
-      Client.wait_task(dst_index_name, response["taskID"], @wait_task_default_time_before_retry, request_options)
+      wait_task(dst_index_name, response["taskID"], @wait_task_default_time_before_retry, request_options)
       {:ok, response}
     end
   end
@@ -132,12 +132,12 @@ defmodule Algolia.Index do
     request = %{ "operation" => "move", "destination" => dst_index }
     src_index
     |> Protocol.index_operation_uri()
-    |> Client.post(request, :write, request_options)
+    |> Client.post(Jason.encode!(request), :write, request_options)
   end
 
   def move_index!(%Algolia.Index{name: _} = src_index, %Algolia.Index{name: dst_index_name} = dst_index, request_options \\ {}) do
     with {:ok, response} <- move_index(src_index, dst_index, request_options) do
-      Client.wait_task(dst_index_name, response["taskID"], @wait_task_default_time_before_retry, request_options)
+      wait_task(dst_index_name, response["taskID"], @wait_task_default_time_before_retry, request_options)
       {:ok, response}
     end
   end
@@ -161,7 +161,7 @@ defmodule Algolia.Index do
       end
     end)
     |> Enum.each(fn response ->
-      Client.wait_task(tmp_index_name, response["taskID"], @wait_task_default_time_before_retry, request_options)
+      wait_task(tmp_index_name, response["taskID"], @wait_task_default_time_before_retry, request_options)
     end)
 
     move_index!(tmp_index, index, request_options)
@@ -184,7 +184,7 @@ defmodule Algolia.Index do
       end
     end)
     |> Enum.each(fn response ->
-      Client.wait_task(tmp_index_name, response["taskID"], @wait_task_default_time_before_retry, request_options)
+      wait_task(tmp_index_name, response["taskID"], @wait_task_default_time_before_retry, request_options)
     end)
 
     move_index!(tmp_index, index, request_options)
@@ -193,12 +193,12 @@ defmodule Algolia.Index do
   def clear(%Algolia.Index{name: name}, request_options \\ %{}) do
     name
     |> Protocol.clear_uri()
-    |> Client.post(%{}, :write, request_options)
+    |> Client.post(Jason.encode!(%{}), :write, request_options)
   end
 
   def clear!(%Algolia.Index{name: name} = index, request_options \\ %{}) do
     with {:ok, response} <- clear(index, request_options) do
-      Client.wait_task(name, response["taskID"], @wait_task_default_time_before_retry, request_options)
+      wait_task(name, response["taskID"], @wait_task_default_time_before_retry, request_options)
       {:ok, response}
     end
   end
@@ -206,13 +206,37 @@ defmodule Algolia.Index do
   def set_settings(%Algolia.Index{name: name}, new_settings, options \\ %{}, request_options \\ %{}) do
     name
     |> Protocol.settings_uri(options)
-    |> Client.put(new_settings, :write, request_options)
+    |> Client.put(Jason.encode!(new_settings), :write, request_options)
   end
 
   def batch(%Algolia.Index{name: name}, request, request_options \\ %{}) do
     name
     |> Protocol.batch_uri()
-    |> Client.post(request, :batch, request_options)
+    |> Client.post(Jason.encode!(request), :batch, request_options)
+  end
+
+  def get_task_status(%Algolia.Index{name: name}, task_id, request_options \\ %{}) do
+    name
+    |> Protocol.task_uri(task_id)
+    |> Client.get(:read, request_options)
+  end
+
+  def wait_task(
+        %Algolia.Index{name: name} = index,
+        task_id,
+        time_before_retry \\ @wait_task_default_time_before_retry,
+        request_options \\ %{}
+      ) do
+    with {:ok, response} <- get_task_status(name, task_id, request_options) do
+      case response["status"] do
+        "published" ->
+          {:ok, task_id}
+
+        _ ->
+          :timer.sleep(time_before_retry)
+          wait_task(index, task_id, time_before_retry, request_options)
+      end
+    end
   end
 
   def build_batch(action, objects, false) do

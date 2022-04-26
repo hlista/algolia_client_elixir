@@ -24,4 +24,5 @@ defmodule AlgoliaClientElixir do
   |> Algolia.Index.init_index()
   |> Algolia.Index.set_settings(settings)
   ```
+  """
 end

@@ -1,5 +1,4 @@
 defmodule Algolia.Client do
-  alias Algolia.Protocol
   alias Algolia.Error.AlgoliaProtocolError
   @application_id Application.get_env(:algolia, :application_id)
   @api_key Application.get_env(:algolia, :api_key)
@@ -13,8 +12,6 @@ defmodule Algolia.Client do
     | Enum.shuffle(Enum.map(1..3, fn i -> "#{@application_id}-#{i}.algolianet.com" end))
   ]
 
-  @wait_task_default_time_before_retry 100
-
   @request_headers [
     {"Content-type", "application/json"},
     {"X-Algolia-API-Key", @api_key},
@@ -24,15 +21,11 @@ defmodule Algolia.Client do
   def request(uri, method, data \\ %{}, type \\ :write, request_options \\ %{})
 
   def request(uri, method, data, type, request_options) when type in [:write, :batch] do
-    with {:ok, body} <- Jason.encode(data) do
-      request_hosts(@hosts, method, uri, build_headers(request_options), body)
-    end
+    request_hosts(@hosts, method, uri, build_headers(request_options), data)
   end
 
   def request(uri, method, data, _, request_options) do
-    with {:ok, body} <- Jason.encode(data) do
-      request_hosts(@search_hosts, method, uri, build_headers(request_options), body)
-    end
+    request_hosts(@search_hosts, method, uri, build_headers(request_options), data)
   end
 
   def request_hosts(hosts, method, uri, headers, body) do
@@ -53,32 +46,8 @@ defmodule Algolia.Client do
     end)
   end
 
-  def get_task_status(index_name, task_id, request_options \\ %{}) do
-    index_name
-    |> Protocol.task_uri(task_id)
-    |> get(:read, request_options)
-  end
-
-  def wait_task(
-        index_name,
-        task_id,
-        time_before_retry \\ @wait_task_default_time_before_retry,
-        request_options \\ %{}
-      ) do
-    with {:ok, response} <- get_task_status(index_name, task_id, request_options) do
-      case response["status"] do
-        "published" ->
-          {:ok, task_id}
-
-        _ ->
-          :timer.sleep(time_before_retry)
-          wait_task(index_name, task_id, time_before_retry, request_options)
-      end
-    end
-  end
-
   def get(uri, type \\ :write, request_options \\ %{}) do
-    request(uri, :get, %{}, type, request_options)
+    request(uri, :get, nil, type, request_options)
   end
 
   def post(uri, body \\ %{}, type \\ :write, request_options \\ %{}) do
@@ -90,7 +59,7 @@ defmodule Algolia.Client do
   end
 
   def delete(uri, type \\ :write, request_options \\ %{}) do
-    request(uri, :delete, %{}, type, request_options)
+    request(uri, :delete, nil, type, request_options)
   end
 
   def build_url(host, uri) do
