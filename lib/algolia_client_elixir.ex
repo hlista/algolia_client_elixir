@@ -11,7 +11,7 @@ defmodule AlgoliaClientElixir do
     api_key: <YOUR_ALGOLIA_API_KEY>,
     application_id: <YOUR_ALGOLIA_APPLICATION_ID>
   ```
-  
+
   ### Index
   Initialize an index
   ```elixir
