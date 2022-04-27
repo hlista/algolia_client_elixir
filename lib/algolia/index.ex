@@ -107,37 +107,37 @@ defmodule Algolia.Index do
 
   def copy_index(src_index, dst_index, scope \\ nil, request_options \\ %{})
 
-  def copy_index(%Algolia.Index{name: src_index}, %Algolia.Index{name: dst_index}, nil, request_options) do
-    request = %{ "operation" => "copy", "destination" => dst_index }
-    src_index
+  def copy_index(%Algolia.Index{name: src_index_name}, %Algolia.Index{name: dst_index_name}, nil, request_options) do
+    request = %{ "operation" => "copy", "destination" => dst_index_name }
+    src_index_name
     |> Protocol.index_operation_uri()
     |> Client.post(Jason.encode!(request), :write, request_options)
   end
 
-  def copy_index(%Algolia.Index{name: src_index}, %Algolia.Index{name: dst_index}, scope, request_options) do
-    request = %{ "operation" => "copy", "destination" => dst_index, "scope" => scope }
-    src_index
+  def copy_index(%Algolia.Index{name: src_index_name}, %Algolia.Index{name: dst_index_name}, scope, request_options) do
+    request = %{ "operation" => "copy", "destination" => dst_index_name, "scope" => scope }
+    src_index_name
     |> Protocol.index_operation_uri()
     |> Client.post(Jason.encode!(request), :write, request_options)
   end
 
-  def copy_index!(%Algolia.Index{name: _} = src_index, %Algolia.Index{name: dst_index_name} = dst_index, scope \\ nil, request_options \\ %{}) do
+  def copy_index!(%Algolia.Index{name: _} = src_index, %Algolia.Index{name: _} = dst_index, scope \\ nil, request_options \\ %{}) do
     with {:ok, response} <- copy_index(src_index, dst_index, scope, request_options) do
-      wait_task(dst_index_name, response["taskID"], @wait_task_default_time_before_retry, request_options)
+      wait_task(dst_index, response["taskID"], @wait_task_default_time_before_retry, request_options)
       {:ok, response}
     end
   end
 
-  def move_index(%Algolia.Index{name: src_index}, %Algolia.Index{name: dst_index}, request_options \\ %{}) do
-    request = %{ "operation" => "move", "destination" => dst_index }
-    src_index
+  def move_index(%Algolia.Index{name: src_index_name}, %Algolia.Index{name: dst_index_name}, request_options \\ %{}) do
+    request = %{ "operation" => "move", "destination" => dst_index_name }
+    src_index_name
     |> Protocol.index_operation_uri()
     |> Client.post(Jason.encode!(request), :write, request_options)
   end
 
-  def move_index!(%Algolia.Index{name: _} = src_index, %Algolia.Index{name: dst_index_name} = dst_index, request_options \\ {}) do
+  def move_index!(%Algolia.Index{name: _} = src_index, %Algolia.Index{name: _} = dst_index, request_options \\ {}) do
     with {:ok, response} <- move_index(src_index, dst_index, request_options) do
-      wait_task(dst_index_name, response["taskID"], @wait_task_default_time_before_retry, request_options)
+      wait_task(dst_index, response["taskID"], @wait_task_default_time_before_retry, request_options)
       {:ok, response}
     end
   end
@@ -161,7 +161,7 @@ defmodule Algolia.Index do
       end
     end)
     |> Enum.each(fn response ->
-      wait_task(tmp_index_name, response["taskID"], @wait_task_default_time_before_retry, request_options)
+      wait_task(tmp_index, response["taskID"], @wait_task_default_time_before_retry, request_options)
     end)
 
     move_index!(tmp_index, index, request_options)
@@ -184,7 +184,7 @@ defmodule Algolia.Index do
       end
     end)
     |> Enum.each(fn response ->
-      wait_task(tmp_index_name, response["taskID"], @wait_task_default_time_before_retry, request_options)
+      wait_task(tmp_index, response["taskID"], @wait_task_default_time_before_retry, request_options)
     end)
 
     move_index!(tmp_index, index, request_options)
@@ -196,9 +196,9 @@ defmodule Algolia.Index do
     |> Client.post(Jason.encode!(%{}), :write, request_options)
   end
 
-  def clear!(%Algolia.Index{name: name} = index, request_options \\ %{}) do
+  def clear!(%Algolia.Index{name: _} = index, request_options \\ %{}) do
     with {:ok, response} <- clear(index, request_options) do
-      wait_task(name, response["taskID"], @wait_task_default_time_before_retry, request_options)
+      wait_task(index, response["taskID"], @wait_task_default_time_before_retry, request_options)
       {:ok, response}
     end
   end
@@ -222,12 +222,12 @@ defmodule Algolia.Index do
   end
 
   def wait_task(
-        %Algolia.Index{name: name} = index,
+        %Algolia.Index{name: _} = index,
         task_id,
         time_before_retry \\ @wait_task_default_time_before_retry,
         request_options \\ %{}
       ) do
-    with {:ok, response} <- get_task_status(name, task_id, request_options) do
+    with {:ok, response} <- get_task_status(index, task_id, request_options) do
       case response["status"] do
         "published" ->
           {:ok, task_id}
