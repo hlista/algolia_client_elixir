@@ -78,11 +78,11 @@ defmodule Algolia.Protocol do
   def partial_object_uri(index, object_id, create_if_not_exits \\ true)
 
   def partial_object_uri(index, object_id, true) do
-    "#{index_uri(index)}/#{URI.encode(object_id.to_s)}/partial"
+    "#{index_uri(index)}/#{URI.encode(object_id)}/partial"
   end
 
   def partial_object_uri(index, object_id, false) do
-    "#{index_uri(index)}/#{URI.encode(object_id.to_s)}/partial?createIfNotExists=false"
+    "#{index_uri(index)}/#{URI.encode(object_id)}/partial?createIfNotExists=false"
   end
 
   def settings_uri(index, params \\ %{})
