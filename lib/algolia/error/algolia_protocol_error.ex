@@ -1,4 +1,4 @@
-defmodule Algolia.Error.AlgoliaProtocolError do
+defmodule AlgoliaClientElixir.Algolia.Error.AlgoliaProtocolError do
   defexception [:code, :message]
 
   def message(exception) do

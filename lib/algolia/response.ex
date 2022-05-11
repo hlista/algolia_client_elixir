@@ -1,5 +1,5 @@
-defmodule Algolia.Client do
-  alias Algolia.Error.AlgoliaProtocolError
+defmodule AlgoliaClientElixir.Algolia.Response do
+  alias AlgoliaClientElixir.Algolia.Error.AlgoliaProtocolError
   @application_id Application.get_env(:algolia, :application_id)
   @api_key Application.get_env(:algolia, :api_key)
 

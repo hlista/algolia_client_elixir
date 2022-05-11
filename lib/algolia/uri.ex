@@ -1,4 +1,4 @@
-defmodule Algolia.Protocol do
+defmodule AlgoliaClientElixir.Algolia.Uri do
 
   @version 1
 
