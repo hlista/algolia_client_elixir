@@ -1,6 +1,6 @@
-defmodule AlgoliaClientElixir.Algolia.Index do
-  alias AlgoliaClientElixir.Algolia.Response
-  alias AlgoliaClientElixir.Algolia.Uri
+defmodule AlgoliaClientElixir.Index do
+  alias AlgoliaClientElixir.Response
+  alias AlgoliaClientElixir.Uri
 
   @type name :: String.t()
 

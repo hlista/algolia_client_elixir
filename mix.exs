@@ -17,7 +17,7 @@ defmodule AlgoliaClientElixir.MixProject do
   def application do
     [
       extra_applications: [:logger],
-      mod: {Algolia.Application, []}
+      mod: {AlgoliaClientElixir.Application, []}
     ]
   end
 
