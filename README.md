@@ -22,15 +22,8 @@ config :algolia,
   application_id: <YOUR_ALGOLIA_APPLICATION_ID>
 ```
   
-### Index
-Initialize an index
-```elixir
-Algolia.Index.init_index("index_name")
-```
 
 Pass index into an index operation
 ```elixir
-"index_name"
-|> Algolia.Index.init_index()
-|> Algolia.Index.set_settings(settings)
+AlgoliaClientElixir.Index.set_settings("index_name", settings)
 ```
